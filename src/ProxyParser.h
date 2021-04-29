@@ -114,8 +114,8 @@ public:
 
     std::pair<bool, unsigned int> parseV1(std::string_view data) {
 
-        /* Check for the full "PROXY" */
-        if (data.length() >= 8 && memcmp(data.data(), "PROXY", 5)) {
+        /* Check for the full "PROXY TCP4 " or "PROXY TCP6 " */
+        if (data.length() < 11 || memcmp(data.data(), "PROXY", 5)) {
             return {false, 0};
         }
 
@@ -136,14 +136,28 @@ public:
         }
         *end = '\0'; /* terminate the string to ease parsing */
         size = end + 2 - line; /* skip header + CRLF */
-
-        /* parse the V1 header using favorite address parsers like inet_pton.
-         * return -1 upon error, or simply fall through to accept.
-         */
         printf("v1 line: %s\n", line);
 
-        /* We consumed the whole header */
-        return {true, size};
+        if (memcmp(data.data(), "PROXY TCP4 ", 11) == 0) {
+            // PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535\r\n
+            uint32_t *b = &addr.ipv4_addr.src_addr;
+            uint32_t *c = &addr.ipv4_addr.dst_addr;
+            sscanf(line + 11, "%u.%u.%u.%u %u.%u.%u.%u %d %d",
+                b, b + 1, b + 2, b + 3,
+                c, c + 1, c + 2, c + 3,
+                &addr.ipv4_addr.src_port, 
+                &addr.ipv4_addr.dst_port);
+        } else if (memcmp(data.data(), "PROXY TCP6 ", 11) == 0) {
+            // PROXY TCP6 ffff:f...f:ffff ffff:f...f:ffff 65535 65535\r\n
+            // TODO
+        } else if (data.length() >= 13 && memcmp(data.data(), "PROXY UNKNOWN", 13)) {
+            /* Read UNKNOWN but don't do anything with it */
+            /* We consumed the whole header */
+            return {true, size};
+        }
+
+        /* Invalid/unhandled format */
+        return {false, 0};
     }
 
     std::pair<bool, unsigned int> parseV2(std::string_view data) {
