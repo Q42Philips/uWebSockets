@@ -146,14 +146,15 @@ public:
             return {false, 0};
         }
 
-        //printf("Family: %d\n", (header.fam & 0xf0) >> 4);
-        //printf("Transport: %d\n", (header.fam & 0x0f));
+        printf("Family: %d\n", (header.fam & 0xf0) >> 4);
+        printf("Transport: %d\n", (header.fam & 0x0f));
 
         /* We have 0 family by default, and UNSPEC is 0 as well */
         family = header.fam;
 
         /* Copy payload */
         memcpy(&addr, data.data() + 16, hostLength);
+        printf("Result: %s\n", getSourceAddress());
 
         /* We consumed everything */
         return {true, 16 + hostLength};
