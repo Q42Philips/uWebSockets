@@ -129,7 +129,7 @@ public:
         memcpy(&line, data.data(), len);
 
         /* locate \r in header */
-        char *end = memchr(line, '\r', len);
+        char *end = (char*)memchr(line, '\r', len);
         if (!end || end[1] != '\n') {
             /* partial or invalid header */
             return {false, 0};
@@ -199,7 +199,7 @@ public:
 
         /* Copy payload */
         memcpy(&addr, data.data() + 16, hostLength);
-        printf("Result: %s\n", getSourceAddress());
+        std::cout << "Result: '" << getSourceAddress() << "'\n";
 
         /* We consumed everything */
         return {true, 16 + hostLength};
