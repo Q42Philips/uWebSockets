@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-/* This module implements The PROXY Protocol v2 */
+/*
+ * Modified by Herman Banken, 2021 to add PROXY v1.
+ */
+
+/* This module implements The PROXY Protocol v1 & v2 */
 
 #ifndef UWS_PROXY_PARSER_H
 #define UWS_PROXY_PARSER_H
