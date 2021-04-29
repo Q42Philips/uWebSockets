@@ -189,8 +189,8 @@ public:
             return {false, 0};
         }
 
-        //printf("Version: %d\n", (header.ver_cmd & 0xf0) >> 4);
-        //printf("Command: %d\n", (header.ver_cmd & 0x0f));
+        printf("Version: %d\n", (header.ver_cmd & 0xf0) >> 4);
+        printf("Command: %d\n", (header.ver_cmd & 0x0f));
 
         /* We get length in network byte order (todo: share this function with the rest) */
         uint16_t hostLength = _cond_byte_swap<uint16_t>(header.len);
@@ -213,7 +213,6 @@ public:
 
         /* Copy payload */
         memcpy(&addr, data.data() + 16, hostLength);
-        std::cout << "Result: '" << getSourceAddress() << "'\n";
 
         /* We consumed everything */
         return {true, 16 + hostLength};
