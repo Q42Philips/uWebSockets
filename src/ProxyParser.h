@@ -103,7 +103,52 @@ public:
             return {false, 0};
         }
 
-        /* HTTP can never start with "\r\n\r\n", but PROXY always does */
+        /* HTTP can never start with "PROX", but PROXY v1 always does */
+        if (memcmp(data.data(), "\x50\x52\x4F\x58", 4) == 0) {
+            return parseV1(data);
+        }
+
+        return parseV2(data);
+    }
+
+
+    std::pair<bool, unsigned int> parseV1(std::string_view data) {
+
+        /* Check for the full "PROXY" */
+        if (data.length() >= 8 && memcmp(data.data(), "PROXY", 5)) {
+            return {false, 0};
+        }
+
+        /* Header is at most 108 bytes */
+        unsigned int len = (unsigned int) data.length() - 1;
+        if (data.length() > 108) {
+            len = 108;
+        }
+        char line[108];
+        int size;
+        memcpy(&line, data.data(), len);
+
+        /* locate \r in header */
+        char *end = memchr(line, '\r', len);
+        if (!end || end[1] != '\n') {
+            /* partial or invalid header */
+            return {false, 0};
+        }
+        *end = '\0'; /* terminate the string to ease parsing */
+        size = end + 2 - line; /* skip header + CRLF */
+
+        /* parse the V1 header using favorite address parsers like inet_pton.
+         * return -1 upon error, or simply fall through to accept.
+         */
+        printf("v1 line: %s\n", line);
+
+        /* We consumed the whole header */
+        return {true, size};
+    }
+
+    std::pair<bool, unsigned int> parseV2(std::string_view data) {
+
+        /* HTTP can never start with "\r\n\r\n", but PROXY v2 always does */
         if (memcmp(data.data(), "\r\n\r\n", 4)) {
             /* This is HTTP, so be done */
             return {true, 0};
